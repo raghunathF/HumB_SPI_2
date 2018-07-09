@@ -18,6 +18,9 @@ extern volatile bool spi_reset_1 ;
 #define LENGTH_SET_ALL 13
 #define LENGTH_SINGLE   4
 
+#define DEVICE_ID_HARDWARE      0x01
+#define DEVICE_ID_FIRMWARE      0x01
+
 
 void configure_spi_slave(void)
 {
@@ -119,14 +122,25 @@ void configure_spi_slave_callbacks(void)
 	spi_enable_callback(&spi_slave_instance, SPI_CALLBACK_BUFFER_TRANSCEIVED);
 }
 
+
+
 void spi_slave_init()
 {
 	volatile enum status_code error_code = 0x10;
+	static bool init = false;
+	const uint8_t firmware_version[4] = {0x00,0x00,DEVICE_ID_HARDWARE,DEVICE_ID_FIRMWARE};
+	//Inital values are the firmware version
 	configure_spi_slave();
 	configure_spi_slave_callbacks();
-	do
+	if(init == false)
 	{
-		error_code = spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
-	} while (error_code != STATUS_OK );
+		init = true;
+		do
+		{
+			error_code = spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+		} while (error_code != STATUS_OK );
+		
+	}
+	
 }
 

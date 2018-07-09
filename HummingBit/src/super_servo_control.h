@@ -14,5 +14,7 @@ void update_super_servo_single(uint8_t port_no ,uint8_t super_servo);
 void switch_off_servos();
 
 
+extern volatile uint8_t battery_voltage;
+
 
 #endif /* SUPER_SERVO_CONTROL_H_ */

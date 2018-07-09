@@ -676,10 +676,8 @@ void _spi_interrupt_handler(uint8_t instance)
 		} 
 		else 
 		{
-			
 				/* Read data register */
 				//_spi_read(module);
-				
 				received_data = (spi_hw->DATA.reg & SERCOM_SPI_DATA_MASK);
 				*(module->rx_buffer_ptr) = received_data;
 				module->rx_buffer_ptr += 1;
@@ -705,6 +703,7 @@ void _spi_interrupt_handler(uint8_t instance)
 						*(module->tx_buffer_ptr + 1)  = DEVICE_ID_FIRMWARE ;
 						firmware_check				  = true;
 					}
+					
 				}
 				
 				/* Check if the last character have been received */

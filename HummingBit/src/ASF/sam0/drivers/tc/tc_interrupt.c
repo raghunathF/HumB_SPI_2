@@ -69,9 +69,9 @@ void _tc_interrupt_handler(uint8_t instance);
 
 #define NO_OF_LEDS                  8
 
-#define MAX_SERIAL_TIMEOUT          2
+#define MAX_SERIAL_TIMEOUT          1
 #define MAX_STATUS_BLINK            65
-#define MIN_BLINK_START             120
+#define MIN_BLINK_START             110
 #define MIN_THRESHOLD_COUNT         106
 #define BLINK_MAX                   0x00
 

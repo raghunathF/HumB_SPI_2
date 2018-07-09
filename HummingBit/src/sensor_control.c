@@ -107,20 +107,18 @@ void read_all_sensors()
 	if(test_count == 1000)
 	{
 		init			=	true ;
-		//battery_voltage =	(total_sum/test_count);
 		battery_voltage = overall_max_value;
-		total_sum		=	0;
 		test_count		=	0;
 		overall_max_value = 0;
 		
-		//overall_count++ ;
-		
+		/*
 		overall_count++ ;
 		sensor_output_temp[overall_count]  = battery_voltage;
 		if(overall_count == 200)
 		{
 			overall_count = 0;
 		}
+		*/
 		
 	}
 	
