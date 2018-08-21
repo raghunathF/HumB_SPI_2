@@ -30,8 +30,6 @@ src\super_servo.c
 
 src\super_servo_control.c
 
-src\test.c
-
 src\ASF\sam0\drivers\tcc\tcc.c
 
 src\ASF\sam0\drivers\tcc\tcc_callback.c

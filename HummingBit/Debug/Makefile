@@ -127,7 +127,6 @@ C_SRCS +=  \
 ../src/sensor.c \
 ../src/super_servo.c \
 ../src/super_servo_control.c \
-../src/test.c \
 ../src/ASF/sam0/drivers/tcc/tcc.c \
 ../src/ASF/sam0/drivers/tcc/tcc_callback.c \
 ../src/ASF/sam0/drivers/tc/tc_sam_d_r_h/tc.c \
@@ -172,7 +171,6 @@ src/sensor_control.o \
 src/sensor.o \
 src/super_servo.o \
 src/super_servo_control.o \
-src/test.o \
 src/ASF/sam0/drivers/tcc/tcc.o \
 src/ASF/sam0/drivers/tcc/tcc_callback.o \
 src/ASF/sam0/drivers/tc/tc_sam_d_r_h/tc.o \
@@ -210,7 +208,6 @@ src/sensor_control.o \
 src/sensor.o \
 src/super_servo.o \
 src/super_servo_control.o \
-src/test.o \
 src/ASF/sam0/drivers/tcc/tcc.o \
 src/ASF/sam0/drivers/tcc/tcc_callback.o \
 src/ASF/sam0/drivers/tc/tc_sam_d_r_h/tc.o \
@@ -248,7 +245,6 @@ src/sensor_control.d \
 src/sensor.d \
 src/super_servo.d \
 src/super_servo_control.d \
-src/test.d \
 src/ASF/sam0/drivers/tcc/tcc.d \
 src/ASF/sam0/drivers/tcc/tcc_callback.d \
 src/ASF/sam0/drivers/tc/tc_sam_d_r_h/tc.d \
@@ -286,7 +282,6 @@ src/sensor_control.d \
 src/sensor.d \
 src/super_servo.d \
 src/super_servo_control.d \
-src/test.d \
 src/ASF/sam0/drivers/tcc/tcc.d \
 src/ASF/sam0/drivers/tcc/tcc_callback.d \
 src/ASF/sam0/drivers/tc/tc_sam_d_r_h/tc.d \
@@ -324,8 +319,6 @@ LINKER_SCRIPT_DEP+=  \
 
 
 # AVR32/GNU C Compiler
-
-
 
 
 

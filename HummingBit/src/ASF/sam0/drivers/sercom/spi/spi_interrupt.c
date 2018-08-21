@@ -80,6 +80,7 @@ uint16_t dummy_write;
 #define DEVICE_ID_FIRMWARE      0x01
 #define LENGTH_SET_ALL			13
 #define LENGTH_SINGLE			 4
+#define LENGTH_SENSOR_MAKE_COMMAND 6 
 
 extern volatile uint8_t sensor_outputs[20];
 extern volatile bool transcation_start;
@@ -690,18 +691,29 @@ void _spi_interrupt_handler(uint8_t instance)
 					serial_timeout = false;
 					serial_timeout_count = 0 ; 
 					//Check if the command is set all 
-					if ((*(module->rx_buffer_ptr-1) == WR_SPI_INT_SET_ALL || *(module->rx_buffer_ptr-1) == WR_SPI_INT_RECEIVE_ALL)) 
+					if ((*(module->rx_buffer_ptr-1) == WR_SPI_INT_SET_ALL )) 
 					{
 						//*PORT_SET	=  G2_RGB;
 						module->remaining_tx_buffer_length =  LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_tx_buffer_length);
 						module->remaining_rx_buffer_length =  LENGTH_SET_ALL_COMMAND - (INITIAL_LENGTH - module->remaining_rx_buffer_length);
 						//*PORT_CLEAR	=  G2_RGB;
 					}
-					else if(*(module->rx_buffer_ptr-1) == DEVICE_VERSION)
+					else if((*(module->rx_buffer_ptr-1) == DEVICE_VERSION) || (*(module->rx_buffer_ptr-1) == WR_SPI_INT_RECEIVE_ALL) )
 					{
-						*(module->tx_buffer_ptr)      =	DEVICE_ID_HARDWARE ;
-						*(module->tx_buffer_ptr + 1)  = DEVICE_ID_FIRMWARE ;
-						firmware_check				  = true;
+						if(*(module->rx_buffer_ptr-1) == WR_SPI_INT_RECEIVE_ALL)
+						{
+							
+							 module->remaining_tx_buffer_length =  LENGTH_SENSOR_MAKE_COMMAND - (INITIAL_LENGTH - module->remaining_tx_buffer_length);
+							 module->remaining_rx_buffer_length =  LENGTH_SENSOR_MAKE_COMMAND - (INITIAL_LENGTH - module->remaining_rx_buffer_length);
+						}
+						else
+						{
+							*(module->tx_buffer_ptr)      =	DEVICE_ID_HARDWARE ;
+							*(module->tx_buffer_ptr + 1)  = DEVICE_ID_FIRMWARE ;
+							firmware_check				  = true;
+							
+						}
+						
 					}
 					
 				}

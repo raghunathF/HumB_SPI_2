@@ -224,7 +224,7 @@
       </framework-data>
     </AsfFrameworkConfig>
     <avrtool>com.atmel.avrdbg.tool.samice</avrtool>
-    <avrtoolserialnumber>260100375</avrtoolserialnumber>
+    <avrtoolserialnumber>260106424</avrtoolserialnumber>
     <avrdeviceexpectedsignature>0x10020100</avrdeviceexpectedsignature>
     <avrtoolinterface>SWD</avrtoolinterface>
     <com_atmel_avrdbg_tool_samice>
@@ -235,7 +235,7 @@
         <InterfaceName>SWD</InterfaceName>
       </ToolOptions>
       <ToolType>com.atmel.avrdbg.tool.samice</ToolType>
-      <ToolNumber>260100375</ToolNumber>
+      <ToolNumber>260106424</ToolNumber>
       <ToolName>J-Link</ToolName>
     </com_atmel_avrdbg_tool_samice>
     <avrtoolinterfaceclock>4000000</avrtoolinterfaceclock>
@@ -738,12 +738,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\super_servo_control.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\test.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\test.h">
       <SubType>compile</SubType>
     </Compile>
     <None Include="src\ASF\sam0\drivers\tcc\tcc_callback.h">

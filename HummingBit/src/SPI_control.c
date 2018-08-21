@@ -5,33 +5,44 @@
  *  Author: Raghunath Jangam
  */ 
 
+/********************************************************************************************/
 #include <asf.h>
 #include "SPI_control.h"
 #include "SPI_slave.h"
 #include "ORB_control.h"
 #include "sensor_control.h"
 #include "super_servo_control.h"
-
+/********************************************************************************************/
 #define   APP
+/********************************************************************************************/
 
+
+/********************************************************************************************
+To ensure that there all the SPI commands that we are waiting for once started takes less than 
+16 msec to complete we used the timer interrupt of the LED to make it happen.If serial timeout occurred 
+then reset the SPI so that we have the right SPI bytes in the buffer during the start
+********************************************************************************************/
 void check_timeout()
 {
+	
 	if(transcation_start == true)
 	{
 		if(serial_timeout == true)
-		{
+		{	
+			update_ORB_single(RGB2_NO , 250 , 0 , 0);
 			serial_timeout_count = 0;
 			serial_timeout = false;
 			transcation_start = false;
 			spi_reset(&spi_slave_instance);
 			spi_slave_init();
 			spi_transceive_buffer_job(&spi_slave_instance, sensor_outputs, received_value,SPI_LENGTH);
+			update_ORB_single(RGB2_NO , 0 , 0 , 0);
 		}
 	}
+		
+	
 	
 }
-
-
 
 
 void spi_main_loop()
@@ -51,7 +62,7 @@ void spi_main_loop()
 	check_timeout();
 	if(transfer_complete_spi_slave == true)
 	{
-		rw   = temp_receive[0] & MASK_RW ;
+		rw   = temp_receive[0] & MASK_RW ; 
 		mode = temp_receive[0] & MASK_MODE;
 		if(rw == WRITE_SPI)
 		{	
@@ -99,23 +110,12 @@ void spi_main_loop()
 					switch_off_servos();
 					break;
 				
-				/*
-				case CHANGE_STATUS:
-					status_battery = ~status_battery;
-					init_status_battery = true;
-					break;
-				*/
-				
 				default:
 					break;
 			}
 			
 		}
-		else if(rw == READ_SPI)
-		{
-			
-		}
-		check_buffer();		
+		check_buffer();	//Look for more SPI commands if occurred , while completing one operation	
 	}
 	
 }		

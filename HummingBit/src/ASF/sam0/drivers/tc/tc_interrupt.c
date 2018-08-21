@@ -51,7 +51,6 @@ void *_tc_instances[TC_INST_NUM];
 
 void _tc_interrupt_handler(uint8_t instance);
 
-#define CLEAR_ORB					0x08038300UL //15,16,17,8,9,27
 #define CLEAR_ORB_LEDS	            0x88038300UL //15,16,17,8,9,27,31
 
 #define STATUS_REGISTER_ADD			0x4200180FUL
@@ -71,7 +70,8 @@ void _tc_interrupt_handler(uint8_t instance);
 
 #define MAX_SERIAL_TIMEOUT          1
 #define MAX_STATUS_BLINK            65
-#define MIN_BLINK_START             110
+#define MIN_BLINK_START             117
+#define MIN_LED_OFF					114
 #define MIN_THRESHOLD_COUNT         106
 #define BLINK_MAX                   0x00
 
@@ -190,29 +190,35 @@ void _tc_interrupt_handler(
 		uint8_t instance)
 {
 	volatile uint8_t*  const  COUNT_REGISTER      = COUNT_REGISTER_ADD;
-	volatile uint32_t* const PORT_CLEAR_REGISTER  = PORT_CLEAR_REGISTER_ADD;
 	volatile uint8_t* const STATUS_REGISTER       = STATUS_REGISTER_ADD;
 	volatile uint8_t* const COMPARE_REGISTER	  = COMPARE_REGISTER_ADD;
+	
+	
 	volatile uint32_t* const  PORT_SET		      = PORT_SET_REGISTER_ADD;
+	volatile uint32_t* const  PORT_CLEAR           = PORT_CLEAR_REGISTER_ADD;
 	volatile uint32_t* const  PORT_TOGGLE		  = PORT_TOGGLE_REGISTER_ADD;
-	/* Temporary variable */
+	
+	
 	uint8_t interrupt_and_callback_status_mask;
 	uint8_t i =0;
 	static bool int_enable = false;
-	static bool led_disable_flag = false;
-	uint32_t B2_RGB = 0x08000000;
-	uint32_t G2_RGB = 0x00000200;
+	//static bool led_disable_flag = false;
+	
 	static uint8_t compare_value=0;
 	static uint8_t compare_value_last=0;
 	static uint8_t compare_value_current=0;
 	static bool first_time		  = true;
+	
 	static volatile uint8_t compare_array[NO_OF_LEDS];
 	static volatile uint8_t compare_array_ID;
 	static volatile uint8_t pin_array[NO_OF_LEDS];
 	static volatile uint8_t pin_array_ID;
 	static uint8_t status_update_count = 0;
+	
+	
 	static uint8_t flexible_count  = MAX_STATUS_BLINK;
 	static uint8_t threshold_blink = MIN_BLINK_START;
+	static uint8_t threshold_off   = MIN_LED_OFF;
 	
  
 
@@ -226,17 +232,12 @@ void _tc_interrupt_handler(
 			
 	/* Check if an Match/Capture Channel 0 interrupt has occurred */
 	if (interrupt_and_callback_status_mask & TC_INTFLAG_MC(1)) {
-		/* Invoke registered and enabled callback function */
-		//(module->callback[TC_CALLBACK_CC_CHANNEL0])(module);
-		/* Clear interrupt flag */
-		//module->hw->COUNT8.INTFLAG.reg = TC_INTFLAG_OVF;
 		
 		if(first_time == false)
 		{
 			if(compare_array_ID != N_valid_compares)
 			{
-				//port_pin_set_output_level(LED1, RGB_ON);
-				//port_pin_set_output_level(pin_array[pin_array_ID++], RGB_ON);
+				
 				*PORT_SET		 = (1UL << pin_array[pin_array_ID++] ) ;
 				compare_array_ID = compare_array_ID + 1;
 			}
@@ -247,9 +248,7 @@ void _tc_interrupt_handler(
 				compare_value_current = compare_array[compare_array_ID];
 				while((compare_value_last == compare_value_current) && (compare_array_ID <= N_valid_compares - 1))
 				{
-					//Enable the LED
-					//port_pin_set_output_level(LED1, RGB_OFF);
-					//port_pin_set_output_level(pin_array[pin_array_ID++],RGB_ON);
+			
 					*PORT_SET		 = (1UL << pin_array[pin_array_ID++] ) ;
 					compare_value_last	  = compare_array[compare_array_ID];
 					compare_value_current = compare_array[++compare_array_ID];
@@ -260,15 +259,13 @@ void _tc_interrupt_handler(
 					while((*STATUS_REGISTER && MASK_SYNC) == true);
 					*COMPARE_REGISTER         =	compare_value_current;
 					*COUNT_REGISTER           =	compare_value_last;			
-					//while((*STATUS_REGISTER && MASK_SYNC) == true);
-					//tc_set_count_value(module_inst, compare_value_last);
-					//tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, compare_value_current);
+					
 				}
 				else
 				{
 					while((*STATUS_REGISTER && MASK_SYNC) == true);
 					*COUNT_REGISTER         =	compare_value_last;
-					//tc_set_count_value(module_inst, compare_value_last);
+					
 				}
 			}
 			
@@ -284,8 +281,7 @@ void _tc_interrupt_handler(
 	
 	/* Check if an Overflow interrupt has occurred */
 	if (interrupt_and_callback_status_mask & TC_INTFLAG_OVF) {
-		/* Invoke registered and enabled callback function */
-		//(module->callback[TC_CALLBACK_OVERFLOW])(module);
+		
 		/* Clear interrupt flag */
 		serial_timeout_count++;
 		
@@ -295,20 +291,24 @@ void _tc_interrupt_handler(
 			if(status_update_count > flexible_count)
 			{
 				status_update_count = 0;
-				if(battery_voltage < threshold_blink)
+				if((battery_voltage < threshold_blink) && (battery_voltage > threshold_off))
 				{
 					flexible_count       =  MAX_STATUS_BLINK - ((threshold_blink- battery_voltage)*60/(80));
-					threshold_blink      =   MIN_BLINK_START - 5;//decrease the threshold
+					threshold_blink      =   MIN_BLINK_START - 2;//decrease the threshold
 					*PORT_TOGGLE          =  STATUS_LED_PIN;
 					//Toggle Status LED
+				}
+				else if( battery_voltage < threshold_off)
+				{
+					*PORT_CLEAR			 =  STATUS_LED_PIN;
+					threshold_off        =   MIN_LED_OFF -2;
 				}
 				else
 				{
 					threshold_blink      =  MIN_BLINK_START;
+					threshold_off        =   MIN_LED_OFF;
 					flexible_count       =  MAX_STATUS_BLINK;//
 					*PORT_SET			 =  STATUS_LED_PIN;
-					//Status LED on
-					
 				}
 			}
 		}
@@ -320,48 +320,30 @@ void _tc_interrupt_handler(
 			serial_timeout_count = 0;
 		}
 		
-		*PORT_CLEAR_REGISTER						  = CLEAR_ORB_LEDS;
+		*PORT_CLEAR						  = CLEAR_ORB_LEDS;
 		if(update_compare_array == true)
 		{
-			//B2 on 
-			//*PORT_SET = B2_RGB;
 			if(int_enable == true)
 			{
 				int_enable = false;
 				tc_enable_callback(module, TC_CALLBACK_CC_CHANNEL0);
 				tc_clear_status(module,0x00000011);
-				/*
-				if(led_disable_flag == true)
-				{
-					
-					led_disable_flag = false;
-				}
-				tc_enable_callback(module, TC_CALLBACK_CC_CHANNEL0);
-				*/
 			}
-			
-			//transfer_temp();
-			//if(lock_temp_array == false)
-			//{
 				N_valid_compares = 0;
 			
 				for(i=0;i<NO_OF_LEDS;i++)
 				{
-					//N_valid_compares++;
-				
 					if(temp_compare_array[i] != 255)
 					{
 						N_valid_compares++;
-						//k++;
 					}
 				
 					compare_array[i] = temp_compare_array[i] ;
 					pin_array[i]	 = temp_pin_array[i];
 				}
 				
-			//}
 			update_compare_array = false;
-			//*PORT_CLEAR_REGISTER = B2_RGB;
+
 		}
 		compare_array_ID = 0;
 		pin_array_ID  = 0;
@@ -370,12 +352,11 @@ void _tc_interrupt_handler(
 		if(compare_value != 255)
 		{
 			
-			led_disable_flag = true;
+			//led_disable_flag = true;
 			//Check sync busy
 			while((*STATUS_REGISTER && MASK_SYNC) == true);
 			//Update the compare value
 			*COMPARE_REGISTER  = compare_value;
-			//tc_set_compare_value(module_inst, TC_COMPARE_CAPTURE_CHANNEL_0, compare_value);
 		}
 		else
 		{
@@ -385,26 +366,6 @@ void _tc_interrupt_handler(
 		while((*STATUS_REGISTER && MASK_SYNC) == true);
 		*COUNT_REGISTER           =	0;
 		module->hw->COUNT8.INTFLAG.reg = TC_INTFLAG_OVF;
-		//module->hw->COUNT8.INTFLAG.reg = TC_INTFLAG_MC(1);
 	}
-	
 
-	/* Check if an Error interrupt has occurred */
-	//if (interrupt_and_callback_status_mask & TC_INTFLAG_ERR) {
-		/* Invoke registered and enabled callback function */
-		//(module->callback[TC_CALLBACK_ERROR])(module);
-		/* Clear interrupt flag */
-		//module->hw->COUNT8.INTFLAG.reg = TC_INTFLAG_ERR;
-	//}
-
-	
-
-	/* Check if an Match/Capture Channel 1 interrupt has occurred */
-	//if (interrupt_and_callback_status_mask & TC_INTFLAG_MC(2)) {
-		/* Invoke registered and enabled callback function */
-		//(module->callback[TC_CALLBACK_CC_CHANNEL1])(module);
-		/* Clear interrupt flag */
-		//module->hw->COUNT8.INTFLAG.reg = TC_INTFLAG_MC(2);
-	//}
-	
 }

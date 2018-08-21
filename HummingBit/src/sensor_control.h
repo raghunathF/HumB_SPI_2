@@ -9,7 +9,6 @@
 #ifndef SENSOR_CONTROL_H_
 #define SENSOR_CONTROL_H_
 
-extern uint8_t* global_sensor_value;
 extern volatile uint8_t battery_voltage;
 void read_all_sensors();
 uint8_t read_sensor(uint8_t sensor_no);

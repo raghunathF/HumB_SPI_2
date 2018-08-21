@@ -36,5 +36,5 @@ struct spi_module spi_slave_instance;
 void spi_slave_init();
 void check_buffer();
 
-extern volatile bool flash_status_LED; 
+//extern volatile bool flash_status_LED; 
 #endif /* SPI_H_ */

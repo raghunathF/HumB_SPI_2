@@ -2,33 +2,42 @@
  * ORB.c
  *
  * Created: 12/6/2017 11:20:25 AM
- *  Author: raghu
+ *  Author: Raghunath Jangam
+ *  Description : Drivers for the RGB , LED1 , LED 2 using the TC module
  */ 
 
+/********************************************************************************************/
 #include <asf.h>
 #include "ORB.h"
 
+/********************************************************************************************/
 struct tc_module orb_tc_instance;
 
+/********************************************************************************************/
 #define NO_OF_LEDS 8
+#define PORT_CLEAR_REGISTER_ADD     0x41004414UL
+#define PORT_SET_REGISTER_ADD		0x41004418UL
+#define CLEAR_ORB_LEDS	            0xC8038300UL //15,16,17,8,9,27,31,30
+
+/********************************************************************************************/
 extern volatile uint8_t temp_compare_array_2[NO_OF_LEDS];
 extern volatile uint8_t temp_compare_array[NO_OF_LEDS];
-
 extern volatile  uint8_t temp_pin_array[NO_OF_LEDS]; 
 extern volatile  uint8_t temp_pin_array_2[NO_OF_LEDS]; 
-
 extern volatile  bool update_compare_array;  //Should be declared in Main.c
-
 extern volatile bool lock_temp_array;
+
+/********************************************************************************************/
 uint8_t test_compare_array[] = {2,3,4,5,6,7,8,9};
 volatile uint8_t  k =0;
 
-#define PORT_CLEAR_REGISTER_ADD     0x41004414UL
-#define PORT_SET_REGISTER_ADD		0x41004418UL
-
-#define CLEAR_ORB_LEDS	            0xC8038300UL //15,16,17,8,9,27,31,30
-
-
+/********************************************************************************************
+increasing_sort_tag :
+Temp_comp_array is a global variable which is also used in the interrupt , there is a good
+chance there is corruption in the temp_comp. So first transfer it to another temporary array to
+do the sorting and then use a lock by the name lock_temp_array to  lock the resource from being used 
+in the interrupt , this is one of the LED flashing used to happen.
+********************************************************************************************/
 void increasing_sort_tag()
 {
 	volatile uint32_t* const  PORT_SET		      = PORT_SET_REGISTER_ADD;
@@ -87,11 +96,16 @@ void transfer_temp_2()
 	}
 }
 
+/********************************************************************
+Clock used   -- 8MHz internal oscillator 
+Frequency of the timer overflow -- 8MHz/(256*255) = 123 Hz
+Timer Module  --  1
+Channel used  --  0
+********************************************************************/
 void ORB_timer_init()
 {
 	struct tc_config orb_tc_config;
 	tc_get_config_defaults(&orb_tc_config);
-	//rgb_led_config.clock_source = GCLK_GENERATOR_1;
 	orb_tc_config.clock_prescaler = TC_CLOCK_PRESCALER_DIV256;
 	orb_tc_config.counter_size = TC_COUNTER_SIZE_8BIT;
 	orb_tc_config.counter_8_bit.period = 0XFF;
@@ -121,31 +135,32 @@ void ORB_setup_pins()
 	port_pin_set_config(LED1, &config_port_pin);
 	port_pin_set_config(LED4, &config_port_pin);
 	set_drivestrength_ORB();
-	ORB_leds_off();
-	
+	ORB_leds_off();//Initial state should be off	
 }
 
 
-
+/* These are just place holder but actual code is in the SPI interrupt.c */
 void tc_callback_PWM(struct tc_module *const module_inst)
 {
 }
-
 void tc_callback_OF(struct tc_module *const module_inst)
 {
 }
 
+//Register the callbacks 
 void ORB_timer_callbacks_init()
 {
 	tc_register_callback(&orb_tc_instance, tc_callback_OF,TC_CALLBACK_OVERFLOW);
 	tc_register_callback(&orb_tc_instance, tc_callback_PWM,TC_CALLBACK_CC_CHANNEL0);
 }
 
+//Enable the callbacks
 void enable_ORB()
 {
 	tc_enable_callback(&orb_tc_instance, TC_CALLBACK_OVERFLOW);
 	tc_enable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
 }
+
 
 void disable_ORB()
 {
@@ -155,6 +170,8 @@ void disable_ORB()
 	tc_disable_callback(&orb_tc_instance, TC_CALLBACK_CC_CHANNEL0);
 }
 
+
+//Initialize the pin array with PINS of RGB LED and LED 1 , LED 4
 void initializing_pin_array()
 {
 	temp_pin_array_2[0]  = ORB_R1;
@@ -167,6 +184,7 @@ void initializing_pin_array()
 	temp_pin_array_2[7]  = LED4;
 }
 
+
 void initializing_compare_array()
 {
 	temp_compare_array_2[0] = 255;//Left  -- R
@@ -177,8 +195,8 @@ void initializing_compare_array()
 	temp_compare_array_2[4] = 255;//Right -- G
 	temp_compare_array_2[5] = 255;//Right -- B
 	
-	temp_compare_array_2[6] =  255;//LED1
-	temp_compare_array_2[7] =  255;//LED4
+	temp_compare_array_2[6] = 255;//LED1
+	temp_compare_array_2[7] = 255;//LED4
 }
 
 

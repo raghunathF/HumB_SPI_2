@@ -4,21 +4,31 @@
  * Created: 12/11/2017 10:01:41 AM
  *  Author: raghu
  */ 
+/****************************************************************************************/
 #include <asf.h>
 #include "super_servo_control.h"
 #include "super_servo.h"
-#define SERVO_OFF_VALUE 0xFF
-#define SERVO_THRESHOLD 85
 
+/****************************************************************************************/
+#define SERVO_OFF_VALUE 0xFF
+#define SERVO_THRESHOLD 95
+
+static bool servo_started = false;
+
+/****************************************************************************************/
 void switch_off_servos()
 {
 	update_super_servo(SERVO_OFF_VALUE,SERVO_OFF_VALUE,SERVO_OFF_VALUE,SERVO_OFF_VALUE);
 }
-
+/***************************************************************************************
+255 is considered as off state 
+Servo should work only using battery
+****************************************************************************************/
 void update_super_servo(uint8_t servo1 , uint8_t servo2 , uint8_t servo3, uint8_t servo4)
 {
 	if(battery_voltage > SERVO_THRESHOLD)
 	{
+		servo_started = true;
 		//Servo--1
 		if(servo1 != 255)
 		{
@@ -60,6 +70,17 @@ void update_super_servo(uint8_t servo1 , uint8_t servo2 , uint8_t servo3, uint8_
 			tcc_set_compare_value(&tcc_ss_instance0, SERVO_4_CH, 0);
 		}
 	}
+	else
+	{
+		if(servo_started == true)
+		{
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_1_CH, 0);
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_2_CH, 0);
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_3_CH, 0);
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_4_CH, 0);
+		}
+		
+	}
 	
 }
 
@@ -67,6 +88,7 @@ void update_super_servo_single(uint8_t port_no ,uint8_t super_servo)
 {
 	if(battery_voltage > SERVO_THRESHOLD)
 	{
+		servo_started = true;
 		switch (port_no)
 		{
 			case '1':
@@ -112,6 +134,16 @@ void update_super_servo_single(uint8_t port_no ,uint8_t super_servo)
 					break;	
 			default:
 					break;
+		}
+	}
+	else
+	{
+		if(servo_started == true)
+		{
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_1_CH, 0);
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_2_CH, 0);
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_3_CH, 0);
+			tcc_set_compare_value(&tcc_ss_instance0, SERVO_4_CH, 0);
 		}
 	}
 	

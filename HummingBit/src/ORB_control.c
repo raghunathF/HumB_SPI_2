@@ -1,16 +1,28 @@
 /*
  * ORB_control.c
  *
- * Created: 12/8/2017 9:44:53 AM
+ *  Created: 12/8/2017 9:44:53 AM
  *  Author: Raghunath Jangam
+ *  Description : Control the ORB.c using this file
  */ 
 
+/********************************************************************************************/
 #include <asf.h>
 #include "ORB_control.h"
 #include "ORB.h"
+
+/********************************************************************************************/
 #define PORT_CLEAR_REGISTER_ADD     0x41004414UL
 #define PORT_SET_REGISTER_ADD		0x41004418UL
 
+/********************************************************************************************/
+
+/********************************************************************************************
+update_ORB_LED:
+Do not update the battery status LED unless the voltage is less than a value (not yet fixed)
+once you have the values make sure you have the compare values sorted in ascending order and 
+also associate the Pins with the compare values
+********************************************************************************************/
 void update_ORB_LED(uint8_t r1 ,uint8_t g1 ,uint8_t b1 ,uint8_t r2 ,uint8_t g2 ,uint8_t b2 ,uint8_t l1 , uint8_t l4 )
 {
 	
@@ -25,11 +37,8 @@ void update_ORB_LED(uint8_t r1 ,uint8_t g1 ,uint8_t b1 ,uint8_t r2 ,uint8_t g2 ,
 	{
 		temp_compare_array_2[7] = 255-l4;//led4 
 	}  
-	 
-	
 	initializing_pin_array();
 	increasing_sort_tag();
-	
 	update_compare_array = true;
 
 }
@@ -76,7 +85,7 @@ void update_LEDS_single(uint8_t port_no, uint8_t led)
 		case '2':
 		    if(status_battery == false)
 		    {
-				temp_compare_array_2[7] = 255  -led;//Led2
+				temp_compare_array_2[7] = 255  -led;//Led4
 			}
 			break;
 		default:
